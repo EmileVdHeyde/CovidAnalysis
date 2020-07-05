@@ -6,11 +6,16 @@ import altair as alt
 
 # %% Collect Data 
 
-#### Provincial Case Counts
+#### Provincial Case Cuml Counts
 prov_cases_df = pd.read_csv('https://raw.githubusercontent.com/dsfsi/covid19za/master/data/covid19za_provincial_cumulative_timeline_confirmed.csv')
 
-#### Provincial Death Counts
+#### Provincial Death Cuml Counts
 prov_deaths_df = pd.read_csv('https://raw.githubusercontent.com/dsfsi/covid19za/master/data/covid19za_provincial_cumulative_timeline_deaths.csv')
+
+#### Provincial Recovery Cuml Counts
+prov_recoveries_df = pd.read_csv('https://raw.githubusercontent.com/dsfsi/covid19za/master/data/covid19za_provincial_cumulative_timeline_recoveries.csv')
+
+prov_recoveries_df.info()
 
 # %% Provincial Data Frame
 
@@ -20,6 +25,9 @@ prov_cases_df.columns = ['Date','YYYYMMDD','Eastern Cape','Free State','Gauteng'
 
 prov_deaths_df = prov_deaths_df[['date', 'YYYYMMDD', 'EC', 'FS','GP','KZN','LP','MP','NC','NW','WC','UNKNOWN']]
 prov_deaths_df.columns = ['Date','YYYYMMDD','Eastern Cape','Free State','Gauteng','KwaZulu-Natal','Limpopo','Mpumalanga','Northern Cape','North West','Western Cape','UNKNOWN']
+
+prov_recoveries_df = prov_recoveries_df[['date', 'YYYYMMDD', 'EC', 'FS','GP','KZN','LP','MP','NC','NW','WC','UNKNOWN']]
+prov_recoveries_df.columns = ['Date','YYYYMMDD','Eastern Cape','Free State','Gauteng','KwaZulu-Natal','Limpopo','Mpumalanga','Northern Cape','North West','Western Cape','UNKNOWN']
 
 
 prov_cases_df = prov_cases_df.melt(id_vars=["Date","YYYYMMDD"], 
@@ -34,8 +42,17 @@ prov_deaths_df = prov_deaths_df.melt(id_vars=["Date","YYYYMMDD"],
                                 var_name="Province", 
                                 value_name="Deaths")
 
+prov_recoveries_df = prov_recoveries_df.melt(id_vars=["Date","YYYYMMDD"], 
+                                var_name="Province", 
+                                value_name="Recoveries")
+
 prov_data_df = pd.merge(prov_cases_df, prov_deaths_df[['YYYYMMDD', 'Province', 'Deaths']],
                        how='left', on=['YYYYMMDD', 'Province'])
+
+prov_data_df = pd.merge(prov_data_df , prov_recoveries_df[['YYYYMMDD', 'Province', 'Recoveries']],
+                       how='left', on=['YYYYMMDD', 'Province'])
+
+
 
 prov_data_df['Prev Deaths'] = (prov_data_df.sort_values(by=['YYYYMMDD'], ascending=True)
                       .groupby(['Province'])['Deaths'].shift(1))
@@ -47,9 +64,28 @@ prov_data_df['Date'] =  pd.to_datetime(prov_data_df['Date'], format='%d-%m-%Y')
 
 prov_data_df['NewCases']=prov_data_df['Cases'] - prov_data_df['Prev Cases']
 prov_data_df['NewDeaths']=prov_data_df['Deaths'] - prov_data_df['Prev Deaths']
+prov_data_df['Active']=prov_data_df['Cases'] - prov_data_df['Deaths'] - prov_data_df['Recoveries']
 
 
-#prov_data_df.info()
+### Custom data set 
+
+cum_df_d= prov_data_df[['Date','YYYYMMDD','Province','Deaths']]
+cum_df_a = prov_data_df[['Date','YYYYMMDD','Province','Active']]
+cum_df_r = prov_data_df[['Date','YYYYMMDD','Province','Recoveries']]
+
+cum_df_d['x'] = 1
+cum_df_a['x'] = 2
+cum_df_r['x'] = 3
+
+cum_df_d.columns = ['Date','YYYYMMDD','Province','Value','Phase']
+cum_df_a.columns = ['Date','YYYYMMDD','Province','Value','Phase']
+cum_df_r.columns = ['Date','YYYYMMDD','Province','Value','Phase']
+
+
+df_union_all= pd.concat([cum_df_d,cum_df_a ,cum_df_r])
+df_union_all['Phase'] = df_union_all['Phase'].map({1:'Deaths', 2:'Active',3:'Recovered'})
+
+
 
 # %% Provincial App initials
 
@@ -83,6 +119,7 @@ option = st.multiselect( 'Which Province do you want to see?', options=defaultco
 
 
 dff=prov_data_df[(prov_data_df['Date'] >= start_date) & (prov_data_df['Date']<=end_date) & (prov_data_df['Province'].isin(option))]   
+df_union_all=df_union_all[(df_union_all['Date'] >= start_date) & (df_union_all['Date']<=end_date) & (df_union_all['Province'].isin(option))] 
 
 st.header('3. View Graphs')
 
@@ -118,4 +155,62 @@ chart=alt.Chart(dff,title=f"Cumulative Cases").mark_line().encode(
 chart = chart.configure_title(fontSize=20, offset=5, orient='top', anchor='middle')
 
 chart 
+
+#### 4
+
+chart=alt.Chart(dff,title=f"Active Cases").mark_line().encode(
+    x='YYYYMMDD',
+    y='Active',
+    color='Province'
+)
+
+chart = chart.configure_title(fontSize=20, offset=5, orient='top', anchor='middle')
+
+chart 
+
+#### 5
+
+chart=alt.Chart(dff,title=f"New Cases Trellis Chart").mark_bar().encode(
+    x='YYYYMMDD',
+    y='sum(NewCases)',
+    color="Province:N",
+    row='Province'
+).properties(
+    height=100
+)
+
+chart = chart.configure_title(fontSize=20, offset=5, orient='top', anchor='middle')
+
+chart 
+
+#### 6
+
+chart=alt.Chart(df_union_all,title=f"Cumulative Cases State").mark_area().encode(
+    x='YYYYMMDD',
+    y='sum(Value)',
+    color='Phase'
+)
+
+chart = chart.configure_title(fontSize=20, offset=5, orient='top', anchor='middle')
+
+chart
+
+#### 5
+
+chart=alt.Chart(df_union_all,title=f"Cases Stage Trellis Chart").mark_bar().encode(
+    x='YYYYMMDD',
+    y='sum(Value)',
+    color="Phase:N",
+    row='Phase'
+).properties(
+    height=100
+)
+
+chart = chart.configure_title(fontSize=20, offset=5, orient='top', anchor='middle')
+
+chart 
+
+###
+# dff=df_union_all[(df_union_all['Date']==end_date) & (df_union_all['Province'].isin(option))] 
+# st.table(dff)
 
