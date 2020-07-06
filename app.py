@@ -3,6 +3,7 @@
 import streamlit as st
 import pandas as pd
 import altair as alt
+from datetime import date, timedelta
 
 # %% Collect Data 
 
@@ -95,8 +96,11 @@ var=prov_data_df['Date'].max().strftime('%Y-%m-%d')
 st.markdown('Data Last Updated: ' +str(var))
 
 #### Time Sider
-firstdate =prov_data_df['Date'].min()
+#firstdate =prov_data_df['Date'].min()
 enddate   =prov_data_df['Date'].max()
+firstdate= enddate - timedelta(60)
+
+#print(defaultstart)
 
 st.header('1. Select The Date Range:')
 start_date = st.date_input('Start date', firstdate)
@@ -111,7 +115,7 @@ st.header('2. Select The Province:')
 
 defaultcols = ['Eastern Cape', 'Free State', 'Gauteng', 'KwaZulu-Natal',
        'Limpopo', 'Mpumalanga', 'Northern Cape', 'North West',
-       'Western Cape', 'UNKNOWN']
+       'Western Cape']
 
 option = st.multiselect( 'Which Province do you want to see?', options=defaultcols , default=defaultcols)
 
@@ -128,11 +132,11 @@ chart=alt.Chart(dff,title=f"New Daily Covid-19 Cases By Province").mark_bar().en
     x='YYYYMMDD',
     y='sum(NewCases)',
     color='Province'
-    )
+)
 
 chart = chart.configure_title(fontSize=20, offset=5, orient='top', anchor='middle')
 
-chart
+chart 
 
 #### 2
 chart=alt.Chart(dff,title=f"New Daily Covid-19 Deaths By Province").mark_bar().encode(
@@ -177,6 +181,8 @@ chart=alt.Chart(dff,title=f"New Cases Trellis Chart").mark_bar().encode(
     row='Province'
 ).properties(
     height=100
+).resolve_scale(
+    y='independent'
 )
 
 chart = chart.configure_title(fontSize=20, offset=5, orient='top', anchor='middle')
@@ -185,7 +191,7 @@ chart
 
 #### 6
 
-chart=alt.Chart(df_union_all,title=f"Cumulative Cases State").mark_area().encode(
+chart=alt.Chart(df_union_all,title=f"Cumulative Cases by Phase").mark_area().encode(
     x='YYYYMMDD',
     y='sum(Value)',
     color='Phase'
@@ -197,15 +203,17 @@ chart
 
 #### 5
 
-chart=alt.Chart(df_union_all,title=f"Cases Stage Trellis Chart").mark_bar().encode(
+chart=alt.Chart(df_union_all,title=f"Cases Phase Trellis Chart").mark_bar().encode(
     x='YYYYMMDD',
     y='sum(Value)',
     color="Phase:N",
     row='Phase'
 ).properties(
     height=100
+).resolve_scale(
+    y='independent'
 )
-
+    
 chart = chart.configure_title(fontSize=20, offset=5, orient='top', anchor='middle')
 
 chart 
@@ -214,3 +222,4 @@ chart
 # dff=df_union_all[(df_union_all['Date']==end_date) & (df_union_all['Province'].isin(option))] 
 # st.table(dff)
 
+st.markdown('Data Source: Data Science for Social Impact research group, led by Dr. Vukosi Marivate, at the University of Pretoria')
