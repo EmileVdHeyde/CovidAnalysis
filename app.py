@@ -5,6 +5,9 @@ import pandas as pd
 import altair as alt
 from datetime import date, timedelta
 
+pd.options.display.max_columns = None
+pd.options.display.max_rows = 500
+
 # %% Collect Data 
 
 #### Provincial Case Cuml Counts
@@ -16,7 +19,7 @@ prov_deaths_df = pd.read_csv('https://raw.githubusercontent.com/dsfsi/covid19za/
 #### Provincial Recovery Cuml Counts
 prov_recoveries_df = pd.read_csv('https://raw.githubusercontent.com/dsfsi/covid19za/master/data/covid19za_provincial_cumulative_timeline_recoveries.csv')
 
-prov_recoveries_df.info()
+
 
 # %% Provincial Data Frame
 
@@ -68,7 +71,7 @@ prov_data_df['NewDeaths']=prov_data_df['Deaths'] - prov_data_df['Prev Deaths']
 prov_data_df['Active']=prov_data_df['Cases'] - prov_data_df['Deaths'] - prov_data_df['Recoveries']
 
 
-### Custom data set 
+### Custom data set for cumulative chart 
 
 cum_df_d= prov_data_df[['Date','YYYYMMDD','Province','Deaths']]
 cum_df_a = prov_data_df[['Date','YYYYMMDD','Province','Active']]
@@ -86,14 +89,83 @@ cum_df_r.columns = ['Date','YYYYMMDD','Province','Value','Phase']
 df_union_all= pd.concat([cum_df_d,cum_df_a ,cum_df_r])
 df_union_all['Phase'] = df_union_all['Phase'].map({1:'Deaths', 2:'Active',3:'Recovered'})
 
+###########  Table Data
+
+latestdate=prov_data_df['Date'].max().strftime('%Y-%m-%d')
+
+dfc=prov_data_df[(prov_data_df['Date']==latestdate)]
+
+#population 
+population=[['Eastern Cape', 6712276] ,
+      ['Free State',  2887465] ,
+      ['Gauteng', 15176115] ,
+      ['KwaZulu-Natal', 11289086] ,
+      ['Limpopo', 5982584 ] ,
+      ['Mpumalanga', 4592187 ] ,
+      ['Northern Cape',4027160 ] , 
+      ['North West', 1263875 ] ,
+      ['Western Cape', 6844272]]
+
+dfp = pd.DataFrame(population, columns = ['Province', 'Population'])
+
+dfs= pd.merge(dfc, dfp,
+                       how='left', on=['Province'])
+
+dfs=dfs.set_index('Province')
+
+#total  
+#prov_data_df.loc[:,'South Africa'] = prov_data_df.sum(numeric_only=True, axis=1)
+dfs.loc['South Africa']= dfs.sum(numeric_only=True, axis=0)
+
+
+#rates calculation
+dfs['RecoveryRate']=dfs['Recoveries']/dfs['Cases']
+dfs['FatalityRate']=dfs['Deaths']/dfs['Cases']
+dfs['CasesPerHundredThousand'] = 100000*dfs['Cases']/dfs['Population']
+dfs['DeathsPerHundredThousand'] = 100000*dfs['Deaths']/dfs['Population']
+dfs['NewCasesPerHundredThousand'] = 100000*dfs['NewCases']/dfs['Population']
+#dfs
+
+#clean up 
+dfs.drop(['Date', 'YYYYMMDD','Prev Cases','Prev Deaths'], axis=1, inplace=True)
+dfs = dfs.drop('UNKNOWN')
+#dfs
+
+
+dfs1 = dfs[['Cases','Active','Deaths','Recoveries','RecoveryRate','FatalityRate']]
+dfs2 = dfs[['NewCases','NewDeaths']]
+dfs3 = dfs[['CasesPerHundredThousand','DeathsPerHundredThousand','NewCasesPerHundredThousand']]
+
+
+dfs1=dfs1.style.format({
+    'RecoveryRate': '{:,.1%}'.format,
+    'FatalityRate': '{:,.1%}'.format,
+    'Cases': '{:,.0f}'.format,
+    'Active': '{:,.0f}'.format,
+    'Deaths': '{:,.0f}'.format,
+    'Recoveries': '{:,.0f}'.format
+  })
+
+dfs2=dfs2.style.format({
+    'NewCases': '{:,.0f}'.format,
+    'NewDeaths': '{:,.0f}'.format
+  })
+
+
+dfs3=dfs3.style.format({
+    'CasesPerHundredThousand': '{:,.0f}'.format,
+    'DeathsPerHundredThousand': '{:,.1f}'.format,
+    'NewCasesPerHundredThousand': '{:,.0f}'.format
+  })
+
 
 
 # %% Provincial App initials
 
 st.title("COVID-19 SOUTH AFRICA ")
 
-var=prov_data_df['Date'].max().strftime('%Y-%m-%d')
-st.markdown('Data Last Updated: ' +str(var))
+
+st.markdown('Data Last Updated: ' +str(latestdate))
 
 #### Time Sider
 #firstdate =prov_data_df['Date'].min()
@@ -203,23 +275,33 @@ chart
 
 #### 5
 
-chart=alt.Chart(df_union_all,title=f"Cases Phase Trellis Chart").mark_bar().encode(
-    x='YYYYMMDD',
-    y='sum(Value)',
-    color="Phase:N",
-    row='Phase'
-).properties(
-    height=100
-).resolve_scale(
-    y='independent'
-)
-    
-chart = chart.configure_title(fontSize=20, offset=5, orient='top', anchor='middle')
-
-chart 
-
-###
-# dff=df_union_all[(df_union_all['Date']==end_date) & (df_union_all['Province'].isin(option))] 
-# st.table(dff)
+st.header('4. Current View:')
+st.dataframe(dfs1)
+st.dataframe(dfs2)
+st.dataframe(dfs3)
 
 st.markdown('Data Source: Data Science for Social Impact research group, led by Dr. Vukosi Marivate, at the University of Pretoria')
+st.markdown('Population Data Source: Stats SA 2019 mid-year estimate')
+
+
+
+
+
+
+# chart=alt.Chart(df_union_all,title=f"Cases Phase Trellis Chart").mark_bar().encode(
+#     x='YYYYMMDD',
+#     y='sum(Value)',
+#     color="Phase:N",
+#     row='Phase'
+# ).properties(
+#     height=100
+# ).resolve_scale(
+#     y='independent'
+# )
+    
+# chart = chart.configure_title(fontSize=20, offset=5, orient='top', anchor='middle')
+
+# chart 
+
+###
+# 
