@@ -121,9 +121,9 @@ dfs.loc['South Africa']= dfs.sum(numeric_only=True, axis=0)
 #rates calculation
 dfs['RecoveryRate']=dfs['Recoveries']/dfs['Cases']
 dfs['FatalityRate']=dfs['Deaths']/dfs['Cases']
-dfs['CasesPerHundredThousand'] = 100000*dfs['Cases']/dfs['Population']
-dfs['DeathsPerHundredThousand'] = 100000*dfs['Deaths']/dfs['Population']
-dfs['NewCasesPerHundredThousand'] = 100000*dfs['NewCases']/dfs['Population']
+dfs['CasesPerHundredThousand'] = 100000*(dfs['Cases']/dfs['Population'])
+dfs['DeathsPerHundredThousand'] = 100000*(dfs['Deaths']/dfs['Population'])
+dfs['NewCasesPerHundredThousand'] = 100000*(dfs['NewCases']/dfs['Population'])
 #dfs
 
 #clean up 
@@ -170,7 +170,7 @@ st.markdown('Data Last Updated: ' +str(latestdate))
 #### Time Sider
 #firstdate =prov_data_df['Date'].min()
 enddate   =prov_data_df['Date'].max()
-firstdate= enddate - timedelta(60)
+firstdate= enddate - timedelta(30)
 
 #print(defaultstart)
 
@@ -204,7 +204,7 @@ chart=alt.Chart(dff,title=f"New Daily Covid-19 Cases By Province").mark_bar().en
     x='YYYYMMDD',
     y='sum(NewCases)',
     color='Province'
-)
+).properties(width=800, height=500)
 
 chart = chart.configure_title(fontSize=20, offset=5, orient='top', anchor='middle')
 
@@ -215,7 +215,7 @@ chart=alt.Chart(dff,title=f"New Daily Covid-19 Deaths By Province").mark_bar().e
     x='YYYYMMDD',
     y='sum(NewDeaths)',
     color='Province'
-    )
+    ).properties(width=800, height=500)
 
 chart = chart.configure_title(fontSize=20, offset=5, orient='top', anchor='middle')
 
@@ -226,7 +226,7 @@ chart=alt.Chart(dff,title=f"Cumulative Cases").mark_line().encode(
     x='YYYYMMDD',
     y='Cases',
     color='Province'
-)
+).properties(width=800, height=500)
 
 chart = chart.configure_title(fontSize=20, offset=5, orient='top', anchor='middle')
 
@@ -238,7 +238,7 @@ chart=alt.Chart(dff,title=f"Active Cases").mark_line().encode(
     x='YYYYMMDD',
     y='Active',
     color='Province'
-)
+).properties(width=800, height=500)
 
 chart = chart.configure_title(fontSize=20, offset=5, orient='top', anchor='middle')
 
@@ -251,8 +251,7 @@ chart=alt.Chart(dff,title=f"New Cases Trellis Chart").mark_bar().encode(
     y='sum(NewCases)',
     color="Province:N",
     row='Province'
-).properties(
-    height=100
+).properties(width=500, height=250
 ).resolve_scale(
     y='independent'
 )
@@ -267,7 +266,7 @@ chart=alt.Chart(df_union_all,title=f"Cumulative Cases by Phase").mark_area().enc
     x='YYYYMMDD',
     y='sum(Value)',
     color='Phase'
-)
+).properties(width=800, height=500)
 
 chart = chart.configure_title(fontSize=20, offset=5, orient='top', anchor='middle')
 
@@ -276,9 +275,18 @@ chart
 #### 5
 
 st.header('4. Current View:')
-st.dataframe(dfs1)
-st.dataframe(dfs2)
-st.dataframe(dfs3)
+# st.dataframe(dfs1,width=900 , height=750)
+# st.dataframe(dfs2,width=900 , height=750)
+# st.dataframe(dfs3,width=900 , height=800)
+
+st.text('Table 1: Current Cumulative Cases')
+st.table(dfs1)
+
+st.text('Table 2: Current New Cases and Deaths')
+st.table(dfs2)
+
+st.text('Table 3: Current Population Scaled Measures')
+st.table(dfs3)
 
 st.markdown('Data Source: Data Science for Social Impact research group, led by Dr. Vukosi Marivate, at the University of Pretoria')
 st.markdown('Population Data Source: Stats SA 2019 mid-year estimate')
