@@ -1,5 +1,4 @@
 
-
 import streamlit as st
 import pandas as pd
 import altair as alt
@@ -113,7 +112,6 @@ dfs= pd.merge(dfc, dfp,
 
 dfs=dfs.set_index('Province')
 
-#total  
 #prov_data_df.loc[:,'South Africa'] = prov_data_df.sum(numeric_only=True, axis=1)
 dfs.loc['South Africa']= dfs.sum(numeric_only=True, axis=0)
 
@@ -158,6 +156,71 @@ dfs3=dfs3.style.format({
     'NewCasesPerHundredThousand': '{:,.0f}'.format
   })
 
+#### Last week vs This week before last 
+
+EndLastWeek      =prov_data_df['Date'].max()
+StartLastWeek   = (EndLastWeek - timedelta(6))
+EndTwoWeeks   =   (StartLastWeek - timedelta(1))
+StartTwoWeeks   = (EndTwoWeeks - timedelta(6))
+
+m=EndLastWeek.strftime('%Y-%m-%d')
+l=StartLastWeek.strftime('%Y-%m-%d')
+k=EndTwoWeeks.strftime('%Y-%m-%d')
+j=StartTwoWeeks.strftime('%Y-%m-%d')
+
+
+##last week 
+lastweek=prov_data_df[(prov_data_df['Date'] >=j ) & (prov_data_df['Date']<=k)]            
+lastweeksum=lastweek.groupby('Province')['NewCases','NewDeaths'].sum()
+lastweeksum.loc['South Africa']= lastweeksum.sum(numeric_only=True, axis=0)
+
+lastweeksum['TotalNewCasesLastWeek']=lastweeksum['NewCases']
+lastweeksum['TotalNewDeathsLastWeek']=lastweeksum['NewDeaths']
+lastweeksum['AverageDailyNewCasesLastWeek']=lastweeksum['NewCases'].div(7)
+lastweeksum['AverageDailyDeathsLastWeek']=lastweeksum['NewDeaths'].div(7)
+
+lastweeksum.drop(['NewCases','NewDeaths'], axis=1, inplace=True)
+
+
+##this week 
+thisweek=prov_data_df[(prov_data_df['Date'] >=l ) & (prov_data_df['Date']<=m)]            
+thisweeksum=thisweek.groupby('Province')['NewCases','NewDeaths'].sum()
+thisweeksum.loc['South Africa']= thisweeksum.sum(numeric_only=True, axis=0)
+
+thisweeksum['TotalNewCasesThisWeek']=thisweeksum['NewCases']
+thisweeksum['TotalNewDeathsThisWeek']=thisweeksum['NewDeaths']
+thisweeksum['AverageDailyNewCasesThisWeek']=thisweeksum['NewCases'].div(7)
+thisweeksum['AverageDailyDeathsThisWeek']=thisweeksum['NewDeaths'].div(7)
+
+thisweeksum.drop(['NewCases','NewDeaths'], axis=1, inplace=True)
+
+weeksum= pd.merge(thisweeksum, lastweeksum,
+                       how='left', on=['Province'])
+
+weeksum['WeeklyPercentageChangeNewCases']  = (weeksum['TotalNewCasesThisWeek'] - weeksum['TotalNewCasesLastWeek'])/(weeksum['TotalNewCasesLastWeek'])
+weeksum['WeeklyPercentageChangeNewDeaths']  = (weeksum['TotalNewDeathsThisWeek'] - weeksum['TotalNewDeathsLastWeek'])/(weeksum['TotalNewDeathsLastWeek'])
+
+weekTable=weeksum[ ['TotalNewCasesThisWeek'   , 'TotalNewDeathsThisWeek'   ,'WeeklyPercentageChangeNewCases', 'WeeklyPercentageChangeNewDeaths']]
+
+
+def color_negative_red(value):
+  """
+  Colors elements in a dateframe
+  green if positive and red if
+  negative. Does not color NaN
+  values.
+  """
+
+  if value < 0:
+    color = 'green'
+  elif value > 0:
+    color = 'red'
+  else:
+    color = 'black'
+
+  return 'color: %s' % color
+
+weekTable=weekTable.style.applymap(color_negative_red, subset=['WeeklyPercentageChangeNewCases','WeeklyPercentageChangeNewDeaths']).format({'TotalNewCasesThisWeek': '{:,.0f}'.format,'TotalNewDeathsThisWeek': '{:,.0f}'.format,'WeeklyPercentageChangeNewCases': '{:,.0%}'.format,'WeeklyPercentageChangeNewDeaths': '{:,.0%}'.format })
 
 
 # %% Provincial App initials
@@ -272,7 +335,7 @@ chart = chart.configure_title(fontSize=20, offset=5, orient='top', anchor='middl
 
 chart
 
-#### 5
+#### Tables 
 
 st.header('4. Current View:')
 # st.dataframe(dfs1,width=900 , height=750)
@@ -285,31 +348,15 @@ st.table(dfs1)
 st.text('Table 2: Current New Cases and Deaths')
 st.table(dfs2)
 
-st.text('Table 3: Current Population Scaled Measures')
+st.text('Table 3: This week vs Last Week')
+st.table(weekTable)
+
+st.text('Table 4: Current Population Scaled Measures')
 st.table(dfs3)
 
+##Footnote
 st.markdown('Data Source: Data Science for Social Impact research group, led by Dr. Vukosi Marivate, at the University of Pretoria')
 st.markdown('Population Data Source: Stats SA 2019 mid-year estimate')
-
-
-
-
-
-
-# chart=alt.Chart(df_union_all,title=f"Cases Phase Trellis Chart").mark_bar().encode(
-#     x='YYYYMMDD',
-#     y='sum(Value)',
-#     color="Phase:N",
-#     row='Phase'
-# ).properties(
-#     height=100
-# ).resolve_scale(
-#     y='independent'
-# )
-    
-# chart = chart.configure_title(fontSize=20, offset=5, orient='top', anchor='middle')
-
-# chart 
 
 ###
 # 
