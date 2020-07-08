@@ -227,6 +227,7 @@ weekTable=weekTable.style.applymap(color_negative_red, subset=['WeeklyPercentage
 
 st.title("COVID-19 SOUTH AFRICA ")
 
+st.header('Trends By Graphs:')
 
 st.markdown('Data Last Updated: ' +str(latestdate))
 
@@ -237,7 +238,7 @@ firstdate= enddate - timedelta(30)
 
 #print(defaultstart)
 
-st.header('1. Select The Date Range:')
+st.markdown('1. Select The Date Range:')
 start_date = st.date_input('Start date', firstdate)
 end_date = st.date_input('End date', enddate)
 
@@ -246,7 +247,7 @@ start_date = start_date.strftime('%Y-%m-%d')
 end_date = end_date.strftime('%Y-%m-%d')
 
 #### Provincial selector 
-st.header('2. Select The Province:')
+st.markdown('2. Select The Province:')
 
 defaultcols = ['Eastern Cape', 'Free State', 'Gauteng', 'KwaZulu-Natal',
        'Limpopo', 'Mpumalanga', 'Northern Cape', 'North West',
@@ -256,11 +257,10 @@ option = st.multiselect( 'Which Province do you want to see?', options=defaultco
 
 # %% Graphs
 
-
+st.markdown('3. View Graphs:')
 dff=prov_data_df[(prov_data_df['Date'] >= start_date) & (prov_data_df['Date']<=end_date) & (prov_data_df['Province'].isin(option))]   
 df_union_all=df_union_all[(df_union_all['Date'] >= start_date) & (df_union_all['Date']<=end_date) & (df_union_all['Province'].isin(option))] 
 
-st.header('3. View Graphs')
 
 #### 1
 chart=alt.Chart(dff,title=f"New Daily Covid-19 Cases By Province").mark_bar().encode(
@@ -336,8 +336,8 @@ chart = chart.configure_title(fontSize=20, offset=5, orient='top', anchor='middl
 chart
 
 #### Tables 
+st.header('Trends By Tables')
 
-st.header('4. Current View:')
 # st.dataframe(dfs1,width=900 , height=750)
 # st.dataframe(dfs2,width=900 , height=750)
 # st.dataframe(dfs3,width=900 , height=800)
