@@ -342,17 +342,18 @@ st.header('4. Current View:')
 # st.dataframe(dfs2,width=900 , height=750)
 # st.dataframe(dfs3,width=900 , height=800)
 
-st.text('Table 1: Current Cumulative Cases')
+st.text('Table 1: Cumulative Cases as at Today')
 st.table(dfs1)
 
-st.text('Table 2: Current New Cases and Deaths')
+st.text('Table 2: New Cases and Deaths for Today')
 st.table(dfs2)
 
-st.text('Table 3: This week vs Last Week')
+st.text('Table 3: New Cases and Deaths This week vs Last Week')
 st.table(weekTable)
 
-st.text('Table 4: Current Population Scaled Measures')
+st.text('Table 4: Cases and Deaths Scaled for Population Size')
 st.table(dfs3)
+
 
 ##Footnote
 st.markdown('Data Source: Data Science for Social Impact research group, led by Dr. Vukosi Marivate, at the University of Pretoria')
