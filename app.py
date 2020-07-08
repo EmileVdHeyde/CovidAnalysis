@@ -336,7 +336,7 @@ chart = chart.configure_title(fontSize=20, offset=5, orient='top', anchor='middl
 chart
 
 #### Tables 
-st.header('Trends By Tables')
+st.header('Trends By Tables:')
 
 # st.dataframe(dfs1,width=900 , height=750)
 # st.dataframe(dfs2,width=900 , height=750)
