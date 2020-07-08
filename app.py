@@ -201,7 +201,7 @@ weeksum['WeeklyPercentageChangeNewCases']  = (weeksum['TotalNewCasesThisWeek'] -
 weeksum['WeeklyPercentageChangeNewDeaths']  = (weeksum['TotalNewDeathsThisWeek'] - weeksum['TotalNewDeathsLastWeek'])/(weeksum['TotalNewDeathsLastWeek'])
 
 weekTable=weeksum[ ['TotalNewCasesThisWeek'   , 'TotalNewDeathsThisWeek'   ,'WeeklyPercentageChangeNewCases', 'WeeklyPercentageChangeNewDeaths']]
-
+weekTable=weekTable.drop(['UNKNOWN'])
 
 def color_negative_red(value):
   """
