@@ -275,7 +275,7 @@ chart
 
 #### 2
 chart=alt.Chart(dff,title=f"New Daily Covid-19 Deaths By Province").mark_bar().encode(
-    x='YYYYMMDD',
+    x='Date',
     y='sum(NewDeaths)',
     color='Province'
     ).properties(width=800, height=500)
@@ -286,7 +286,7 @@ chart
 
 #### 3
 chart=alt.Chart(dff,title=f"Cumulative Cases").mark_line().encode(
-    x='YYYYMMDD',
+    x='Date',
     y='Cases',
     color='Province'
 ).properties(width=800, height=500)
@@ -298,7 +298,7 @@ chart
 #### 4
 
 chart=alt.Chart(dff,title=f"Active Cases").mark_line().encode(
-    x='YYYYMMDD',
+    x='Date',
     y='Active',
     color='Province'
 ).properties(width=800, height=500)
@@ -310,7 +310,7 @@ chart
 #### 5
 
 chart=alt.Chart(dff,title=f"New Cases Trellis Chart").mark_bar().encode(
-    x='YYYYMMDD',
+    x='Date',
     y='sum(NewCases)',
     color="Province:N",
     row='Province'
@@ -326,7 +326,7 @@ chart
 #### 6
 
 chart=alt.Chart(df_union_all,title=f"Cumulative Cases by Phase").mark_area().encode(
-    x='YYYYMMDD',
+    x='Date',
     y='sum(Value)',
     color='Phase'
 ).properties(width=800, height=500)
