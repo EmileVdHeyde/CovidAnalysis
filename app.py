@@ -264,7 +264,7 @@ df_union_all=df_union_all[(df_union_all['Date'] >= start_date) & (df_union_all['
 
 #### 1
 chart=alt.Chart(dff,title=f"New Daily Covid-19 Cases By Province").mark_bar().encode(
-    x='YYYYMMDD',
+    x='Date',
     y='sum(NewCases)',
     color='Province'
 ).properties(width=800, height=500)
